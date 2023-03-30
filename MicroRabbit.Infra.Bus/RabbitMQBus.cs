@@ -6,7 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System;
 using System.Text;
+using System.Xml.Linq;
 
 namespace MicroRabbit.Infra.Bus
 {
@@ -53,6 +55,7 @@ namespace MicroRabbit.Infra.Bus
             where TH : IEventHandler<T>
         {
             var eventName = typeof(T).Name;
+            eventName += " TomerKedem";
             var handlerType = typeof(TH);
 
             if(!_eventTypes.Contains(typeof(T)))
@@ -92,7 +95,7 @@ namespace MicroRabbit.Infra.Bus
 
             var consumer = new AsyncEventingBasicConsumer(channel);
             consumer.Received += Consumer_Received;
-
+            eventName += " TomerKedem";
             channel.BasicConsume(eventName,true, consumer);
         }
 
@@ -123,7 +126,8 @@ namespace MicroRabbit.Infra.Bus
                     {
                         var handler = scop.ServiceProvider.GetService(subscription);
                         if (handler == null) continue;
-                        var eventType = _eventTypes.SingleOrDefault(t => t.Name == eventName);
+                        
+                        var eventType = _eventTypes.SingleOrDefault(t => t.Name == "TransferCreatedEvent");
                         var @event = JsonConvert.DeserializeObject(message, eventType);
                         var conreteType = typeof(IEventHandler<>).MakeGenericType(eventType);
                         await (Task)conreteType.GetMethod("Handle").Invoke(handler, new object[] { @event });
